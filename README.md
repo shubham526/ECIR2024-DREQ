@@ -1,7 +1,7 @@
 # DREQ: Document Re-Ranking Using Entity-based Query Understanding
 Shubham Chatterjee, Iain Mackie, Jeff Dalton. 2024. [DREQ: Document Re-Ranking Using Entity-based Query Understanding](https://arxiv.org/abs/2401.05939). In _Proceedings of the 46th European Conference on Information Retrieval (ECIR 2024) ._
 
-This repository contains the code associated with this paper and the instructions on how to execute the code. For detailed instructions on how to run the code, [read the documentation](https://github.com/shubham526/SIGIR2022-BERT-ER/wiki/BERT-ER:-Query-Specific-BERT-Entity-Representations-for-Entity-Ranking). 
+This repository contains the code associated with this paper and the instructions on how to execute the code. For detailed instructions on how to run the code, [read the documentation](https://github.com/shubham526/ECIR2024-DREQ/wiki/DREQ:-Document-Re%E2%80%90Ranking-Using-Entity%E2%80%90based-Query-Understanding). 
 
 Shield: [![CC BY-SA 4.0][cc-by-sa-shield]][cc-by-sa]
 
