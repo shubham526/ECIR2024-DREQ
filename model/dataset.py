@@ -20,8 +20,10 @@ class DocRankingDataset(Dataset):
             self._examples = [json.loads(line) for line in tqdm(f)]
 
     def _create_input(self, text):
-        encoded_dict = self._tokenizer.encode_plus(
-            text=text,
+        # The __call__ form rather than encode_plus: encode_plus was removed in
+        # transformers v5. The arguments and the result are unchanged.
+        encoded_dict = self._tokenizer(
+            text,
             add_special_tokens=True,  # Add '[CLS]' and '[SEP]'
             max_length=self._max_len,  # Pad & truncate all sentences.
             padding='max_length',
@@ -30,7 +32,17 @@ class DocRankingDataset(Dataset):
             return_token_type_ids=True  # Construct token type ids
         )
 
-        return encoded_dict['input_ids'], encoded_dict['attention_mask'], encoded_dict['token_type_ids']
+        input_ids = encoded_dict['input_ids']
+        attention_mask = encoded_dict['attention_mask']
+
+        # Not every tokenizer emits token_type_ids -- T5's does not, and
+        # DistilBERT's does not. The model ignores them for those families,
+        # but the three-value signature is used throughout, so return zeros.
+        token_type_ids = encoded_dict.get('token_type_ids')
+        if token_type_ids is None:
+            token_type_ids = [0] * len(input_ids)
+
+        return input_ids, attention_mask, token_type_ids
 
     def collate(self, batch):
         query_input_ids = torch.tensor([item['query_input_ids'] for item in batch])
