@@ -25,9 +25,19 @@ def save_checkpoint(save_path, model):
 
 
 def load_checkpoint(load_path, model, device):
+    """
+    Load a checkpoint written by save_checkpoint.
+
+    save_checkpoint writes a bare state_dict. The previous version of this
+    function indexed state_dict['model_state_dict'], a key that is never
+    written, so it raised KeyError on any checkpoint produced by this code.
+    Both layouts are accepted here so that checkpoints saved either way load.
+    """
     if load_path is None:
         return
 
-    state_dict = torch.load(load_path, map_location=device)
-    model.load_state_dict(state_dict['model_state_dict'])
+    state_dict = torch.load(load_path, map_location=device, weights_only=False)
+    if isinstance(state_dict, dict) and 'model_state_dict' in state_dict:
+        state_dict = state_dict['model_state_dict']
+    model.load_state_dict(state_dict)
     print(f'Model loaded from <== {load_path}')
