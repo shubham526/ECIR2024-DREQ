@@ -19,10 +19,15 @@ def test(model, data_loader, run_file, device):
     utils.save_trec(run_file, res_dict)
     print('[Done].')
 
+    # The number of (query, document) pairs written must equal the number of
+    # examples in the test file. A silent shortfall here produces a run that
+    # scores without error and reports a plausible figure.
+    return res_dict
+
 
 def main():
     parser = argparse.ArgumentParser("Script to test a model.")
-    parser.add_argument('--test', help='Training data.', required=True, type=str)
+    parser.add_argument('--test', help='Test data.', required=True, type=str)
     parser.add_argument('--max-len', help='Maximum length for truncation/padding. Default: 512', default=512, type=int)
     parser.add_argument('--checkpoint', help='Name of checkpoint to load.', required=True, type=str)
     parser.add_argument('--text-enc', help='Name of model (bert|distilbert|roberta|deberta|ernie|electra|conv-bert|t5).'
@@ -42,9 +47,6 @@ def main():
     device = torch.device(
         cuda_device if torch.cuda.is_available() and args.use_cuda else 'cpu'
     )
-
-    cuda_device = 'cuda:' + str(args.cuda)
-    print('CUDA Device: {} '.format(cuda_device))
 
     model_map = {
         'bert': 'bert-base-uncased',
@@ -86,19 +88,28 @@ def main():
     model = DocRankingModel(pretrained=pretrain)
 
     print('Loading checkpoint...')
-    model.load_state_dict(torch.load(args.checkpoint, map_location=device))
+    utils.load_checkpoint(args.checkpoint, model, device)
     print('[Done].')
 
     print('Using device: {}'.format(device))
     model.to(device)
 
     print("Starting to test...")
-    test(
+    res_dict = test(
         model=model,
         data_loader=test_loader,
         run_file=args.save,
         device=device
     )
+
+    n_in = len(test_set)
+    n_out = sum(len(v) for v in res_dict.values())
+    n_queries = len(res_dict)
+    print('Examples in test file : {}'.format(n_in))
+    print('Pairs written to run  : {} across {} queries'.format(n_out, n_queries))
+    if n_in != n_out:
+        print('WARNING: {} example(s) did not reach the run file. The run will '
+              'still score, and will report a plausible figure.'.format(n_in - n_out))
 
     print('Test complete.')
 
